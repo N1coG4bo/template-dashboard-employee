@@ -1,6 +1,7 @@
 import React, { Component, Suspense, lazy } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import Spinner from '../components/common/Spinner';
+import { isAuthenticated } from '../services/authStorage';
 
 const Dashboard = lazy(() => import('./Dashboard'));
 
@@ -22,13 +23,25 @@ const Lockscreen = lazy(() => import('./UserPages/Lockscreen'));
 
 const BlankPage = lazy(() => import('./GeneralPages/BlankPage'));
 const Upload = lazy(() => import('./Upload/Upload'));
+const Products = lazy(() => import('./Products/Products'));
+
+function PrivateRoute({ component: ComponentToRender, ...rest }) {
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        isAuthenticated() ? <ComponentToRender {...props} /> : <Redirect to="/user-pages/login-1" />
+      }
+    />
+  );
+}
 
 class ScreenRoutes extends Component {
   render() {
     return (
       <Suspense fallback={<Spinner />}>
         <Switch>
-          <Route exact path="/dashboard" component={Dashboard} />
+          <PrivateRoute exact path="/dashboard" component={Dashboard} />
 
           <Route path="/basic-ui/buttons" component={Buttons} />
           <Route path="/basic-ui/dropdowns" component={Dropdowns} />
@@ -50,7 +63,8 @@ class ScreenRoutes extends Component {
           <Route path="/error-pages/error-500" component={Error500} />
 
           <Route path="/general-pages/blank-page" component={BlankPage} />
-          <Route path="/upload" component={Upload} />
+          <PrivateRoute path="/upload" component={Upload} />
+          <PrivateRoute path="/products" component={Products} />
 
           <Redirect to="/dashboard" />
         </Switch>

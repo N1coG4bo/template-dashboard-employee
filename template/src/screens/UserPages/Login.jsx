@@ -1,8 +1,47 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { Form } from 'react-bootstrap';
+import { loginApi } from '../../services/authApi';
+import { isAuthenticated, setSession } from '../../services/authStorage';
 
 export class Login extends Component {
+  state = {
+    email: 'admin@bakery.local',
+    password: 'Admin123*',
+    loading: false,
+    error: '',
+  };
+
+  componentDidMount() {
+    if (isAuthenticated()) {
+      this.props.history.push('/dashboard');
+    }
+  }
+
+  handleChange = (event) => {
+    const { name, value } = event.target;
+    this.setState({ [name]: value });
+  };
+
+  handleSubmit = async (event) => {
+    event.preventDefault();
+    this.setState({ loading: true, error: '' });
+
+    try {
+      const response = await loginApi({
+        email: this.state.email,
+        password: this.state.password,
+      });
+
+      setSession(response.token, response.user);
+      this.props.history.push('/dashboard');
+    } catch (error) {
+      this.setState({ error: 'Credenciales invalidas o backend no disponible.' });
+    } finally {
+      this.setState({ loading: false });
+    }
+  };
+
   render() {
     return (
       <div>
@@ -15,15 +54,44 @@ export class Login extends Component {
                 </div>
                 <h4>Hello! let's get started</h4>
                 <h6 className="font-weight-light">Sign in to continue.</h6>
-                <Form className="pt-3">
+                <Form className="pt-3" onSubmit={this.handleSubmit}>
+                  {this.state.error && (
+                    <div className="alert alert-danger" role="alert">
+                      {this.state.error}
+                    </div>
+                  )}
                   <Form.Group className="d-flex search-field">
-                    <Form.Control type="email" placeholder="Username" size="lg" className="h-auto" />
+                    <Form.Control
+                      type="email"
+                      placeholder="Email"
+                      size="lg"
+                      className="h-auto"
+                      name="email"
+                      value={this.state.email}
+                      onChange={this.handleChange}
+                      required
+                    />
                   </Form.Group>
                   <Form.Group className="d-flex search-field">
-                    <Form.Control type="password" placeholder="Password" size="lg" className="h-auto" />
+                    <Form.Control
+                      type="password"
+                      placeholder="Password"
+                      size="lg"
+                      className="h-auto"
+                      name="password"
+                      value={this.state.password}
+                      onChange={this.handleChange}
+                      required
+                    />
                   </Form.Group>
                   <div className="mt-3">
-                    <Link className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn" to="/dashboard">SIGN IN</Link>
+                    <button
+                      className="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn"
+                      type="submit"
+                      disabled={this.state.loading}
+                    >
+                      {this.state.loading ? 'SIGNING IN...' : 'SIGN IN'}
+                    </button>
                   </div>
                   <div className="my-2 d-flex justify-content-between align-items-center">
                     <div className="form-check">
@@ -53,4 +121,4 @@ export class Login extends Component {
   }
 }
 
-export default Login
+export default withRouter(Login)

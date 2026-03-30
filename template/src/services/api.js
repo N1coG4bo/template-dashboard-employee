@@ -1,4 +1,5 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
+const AUTH_TOKEN_KEY = 'bakery_auth_token';
 
 export class ApiError extends Error {
   constructor(message, status, payload) {
@@ -39,10 +40,15 @@ export async function request(path, options = {}) {
   const { method = 'GET', query, body, headers = {}, signal } = options;
 
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+  const token = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_TOKEN_KEY) : null;
   const requestHeaders = {
     Accept: 'application/json',
     ...headers,
   };
+
+  if (token && !requestHeaders.Authorization) {
+    requestHeaders.Authorization = `Bearer ${token}`;
+  }
 
   const payload = body && !isFormData && typeof body !== 'string' ? JSON.stringify(body) : body;
   if (!isFormData && body && !requestHeaders['Content-Type']) {

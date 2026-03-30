@@ -2,8 +2,15 @@ import React, { Component } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Trans } from 'react-i18next';
+import { clearSession, getUser } from '../../services/authStorage';
 
 class Navbar extends Component {
+  handleLogout = (event) => {
+    event.preventDefault();
+    clearSession();
+    window.location.href = '/user-pages/login-1';
+  };
+
   toggleOffcanvas() {
     document.querySelector('.sidebar-offcanvas').classList.toggle('active');
   }
@@ -11,6 +18,8 @@ class Navbar extends Component {
     document.querySelector('.right-sidebar').classList.toggle('open');
   }
   render () {
+    const sessionUser = getUser();
+
     return (
       <nav className="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
         <div className="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
@@ -40,7 +49,7 @@ class Navbar extends Component {
                     <span className="availability-status online"></span>
                   </div>
                   <div className="nav-profile-text">
-                    <p className="mb-1 text-black"><Trans>David Greymaax</Trans></p>
+                    <p className="mb-1 text-black">{sessionUser?.name || 'User'}</p>
                   </div>
                 </Dropdown.Toggle>
 
@@ -49,7 +58,7 @@ class Navbar extends Component {
                     <i className="mdi mdi-cached mr-2 text-success"></i>
                     <Trans>Activity Log</Trans>
                   </Dropdown.Item>
-                  <Dropdown.Item href="!#" onClick={evt =>evt.preventDefault()}>
+                  <Dropdown.Item href="!#" onClick={this.handleLogout}>
                     <i className="mdi mdi-logout mr-2 text-primary"></i>
                     <Trans>Signout</Trans>
                   </Dropdown.Item>
@@ -162,7 +171,7 @@ class Navbar extends Component {
               </Dropdown>
             </li>
             <li className="nav-item nav-logout d-none d-lg-block">
-              <a className="nav-link" href="!#" onClick={event => event.preventDefault()}>
+              <a className="nav-link" href="!#" onClick={this.handleLogout}>
                 <i className="mdi mdi-power"></i>
               </a>
             </li>
